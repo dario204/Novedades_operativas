@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Novedades Operativas – EANA Regional Córdoba</title>
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+ 
+<header>
+  <div>
+    <div class="titulo">✈ Novedades Operativas — EANA</div>
+    <div class="subtitulo">Regional Córdoba</div>
+  </div>
+  <div class="fecha-hoy" id="fecha-hoy"></div>
+</header>
+ 
+<nav>
+  <button class="activo" onclick="mostrarVista('lista')">📋 Novedades</button>
+  <button onclick="mostrarVista('nueva')">➕ Cargar Novedad</button>
+  <button onclick="mostrarVista('dashboard')">📊 Dashboard</button>
+  <button onclick="mostrarVista('exportar')">⬇ Exportar</button>
+</nav>
+<div id="banner-error" class="oculto" class="banner-error-estilo"></div>
+ 
+<main>
+ 
+  <!-- ===== VISTA: LISTA ===== -->
+  <div id="vista-lista">
+    <div class="cards-resumen" id="cards-resumen"></div>
+    <div class="toolbar">
+      <input type="text" id="filtro-texto" placeholder="🔍 Buscar por sistema, motivo, observación..." oninput="aplicarFiltros('filtro-texto')">
+      <select id="filtro-aerop" onchange="aplicarFiltros('filtro-aerop')">
+        <option value="">Todos los aeropuertos</option>
+      </select>
+      <select id="filtro-area" onchange="aplicarFiltros('filtro-area')">
+        <option value="">Todas las áreas</option>
+      </select>
+      <select id="filtro-estado" onchange="aplicarFiltros('filtro-estado')">
+        <option value="">Todos los estados</option>
+        <option value="Abierta">Abierta</option>
+        <option value="En Curso">En Curso</option>
+        <option value="Solucionado">Solucionado</option>
+        <option value="Finalizada">Finalizada</option>
+      </select>
+      <select id="filtro-criticidad" onchange="aplicarFiltros('filtro-criticidad')">
+        <option value="">Toda criticidad</option>
+        <option value="Alta">Alta</option>
+        <option value="Media">Media</option>
+        <option value="Baja">Baja</option>
+      </select>
+      <input type="date" id="filtro-fecha-desde" onchange="aplicarFiltros('filtro-fecha-desde')" title="Desde">
+      <input type="date" id="filtro-fecha-hasta" onchange="aplicarFiltros('filtro-fecha-hasta')" title="Hasta">
+      <div class="spacer"></div>
+      <button class="btn btn-secundario" onclick="limpiarFiltros()">✕ Limpiar</button>
+    </div>
+    <div class="tabla-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Aerop.</th>
+            <th>Área</th>
+            <th>Dependencia</th>
+            <th>Sistema / Servicio</th>
+            <th>Motivo</th>
+            <th>Impacto</th>
+            <th>Criticidad</th>
+            <th>Estado</th>
+            <th>Días</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body"></tbody>
+      </table>
+      <div class="paginacion" id="paginacion"></div>
+    </div>
+  </div>
+ 
+  <!-- ===== VISTA: NUEVA NOVEDAD ===== -->
+  <div id="vista-nueva" class="oculto">
+    <div class="form-container">
+      <div class="form-titulo">📝 Cargar Nueva Novedad</div>
+      <div id="alerta-form" class="oculto"></div>
+      <div class="form-grid">
+        <div class="form-grupo">
+          <label>Fecha de inicio <span class="requerido">*</span></label>
+          <input type="date" id="f-fecha" required max="">
+          <span class="msg-error oculto" id="err-fecha">Campo requerido</span>
+        </div>
+        <div class="form-grupo">
+          <label>Aeropuerto <span class="requerido">*</span></label>
+          <select id="f-aerop" required>
+            <option value="">— Seleccionar —</option>
+            <option>SACO</option><option>SASA</option><option>SASJ</option>
+            <option>SANT</option><option>SANE</option><option>SANR</option>
+            <option>SANC</option><option>SANL</option><option>SAOC</option><option>SAOS</option>
+          </select>
+          <span class="msg-error oculto" id="err-aerop">Campo requerido</span>
+        </div>
+        <div class="form-grupo">
+          <label>Área <span class="requerido">*</span></label>
+          <select id="f-area" required>
+            <option value="">— Seleccionar —</option>
+            <option>ANS</option><option>CNSE</option><option>SOC</option>
+            <option>RRHH</option><option>ADM FIN</option><option>INSTRUCCION</option>
+            <option>INFRA</option><option>MANTENIMIENTO</option>
+          </select>
+          <span class="msg-error oculto" id="err-area">Campo requerido</span>
+        </div>
+        <div class="form-grupo">
+          <label>Dependencia</label>
+          <select id="f-dependencia">
+            <option value="">— Seleccionar —</option>
+            <option>ACC</option><option>TWR</option><option>AISCOM</option>
+            <option>COMS</option><option>ARO AIS</option>
+          </select>
+        </div>
+        <div class="form-grupo ancho-completo">
+          <label>Sistema / Servicio <span class="requerido">*</span></label>
+          <input type="text" id="f-sistema" placeholder="Ej: Grabadora, Radar, Torre de control..." required>
+          <span class="msg-error oculto" id="err-sistema">Campo requerido</span>
+        </div>
+        <div class="form-grupo">
+          <label>Estado inicial <span class="requerido">*</span></label>
+          <select id="f-estado-ini" required>
+            <option value="">— Seleccionar —</option>
+            <option>Abierta</option><option>En Curso</option><option>Solucionado</option><option>Finalizada</option>
+          </select>
+          <span class="msg-error oculto" id="err-estado-ini">Campo requerido</span>
+        </div>
+        <div class="form-grupo">
+          <label>Criticidad <span class="requerido">*</span></label>
+          <select id="f-criticidad" required>
+            <option value="">— Seleccionar —</option>
+            <option>Alta</option><option>Media</option><option>Baja</option>
+          </select>
+          <span class="msg-error oculto" id="err-criticidad">Campo requerido</span>
+        </div>
+        <div class="form-grupo ancho-completo">
+          <label>Impacto Operativo <span class="requerido">*</span></label>
+          <select id="f-impacto" required>
+            <option value="">— Seleccionar —</option>
+            <option>Afecta ATS</option>
+            <option>Afectacion Parcial</option>
+            <option>NO Afecta ATS</option>
+          </select>
+          <span class="msg-error oculto" id="err-impacto">Campo requerido</span>
+        </div>
+        <div class="form-grupo ancho-completo">
+          <label>Motivo <span class="requerido">*</span></label>
+          <input type="text" id="f-motivo" placeholder="Describir brevemente el motivo de la novedad..." required>
+          <span class="msg-error oculto" id="err-motivo">Campo requerido</span>
+        </div>
+        <div class="form-grupo ancho-completo">
+          <label>Observaciones</label>
+          <textarea id="f-obs" placeholder="Información adicional, coordinaciones realizadas..."></textarea>
+        </div>
+        <div class="form-grupo">
+          <label>NOTAM</label>
+          <input type="text" id="f-notam" placeholder="Número de NOTAM si aplica">
+        </div>
+        <div class="form-grupo">
+          <label>Evidencia</label>
+          <input type="text" id="f-evidencia" placeholder="Ej: Mail, Foto, Reporte...">
+        </div>
+        <div class="form-grupo ancho-completo">
+          <label>Plan de Acción</label>
+          <textarea id="f-plan" placeholder="Acciones previstas o tomadas..."></textarea>
+        </div>
+      </div>
+      <div class="form-acciones">
+        <button class="btn btn-secundario" onclick="limpiarFormulario()">Limpiar</button>
+        <button class="btn btn-primario" onclick="guardarNovedad()">✔ Guardar Novedad</button>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ===== VISTA: DASHBOARD ===== -->
+  <div id="vista-dashboard" class="oculto">
+    <div class="cards-resumen" id="cards-dash"></div>
+    <div class="dashboard-grid">
+      <div class="panel">
+        <h4>Novedades por aeropuerto</h4>
+        <div id="barras-aerop"></div>
+      </div>
+      <div class="panel">
+        <h4>Novedades por área</h4>
+        <div id="barras-area"></div>
+      </div>
+      <div class="panel">
+        <h4>Distribución por criticidad</h4>
+        <div class="dona-wrapper">
+          <canvas id="dona-criticidad" width="140" height="140"></canvas>
+          <div class="dona-leyenda" id="ley-criticidad"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>Impacto operativo</h4>
+        <div class="dona-wrapper">
+          <canvas id="dona-impacto" width="140" height="140"></canvas>
+          <div class="dona-leyenda" id="ley-impacto"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ===== VISTA: EXPORTAR ===== -->
+  <div id="vista-exportar" class="oculto">
+    <div class="form-container form-container-chico">
+      <div class="form-titulo">⬇ Exportar Datos</div>
+      <p class="exportar-desc">
+        Descargá los datos cargados en formato CSV para usar en Excel u otras herramientas.
+      </p>
+      <div class="exportar-botones">
+        <button class="btn btn-primario" onclick="exportarCSV()">📥 Descargar CSV completo</button>
+        <button class="btn btn-secundario" onclick="exportarFiltrado()">📥 Descargar solo novedades abiertas/en curso</button>
+      </div>
+      <hr class="exportar-separador">
+      <div class="exportar-total">
+        <strong>Total de registros:</strong> <span id="total-exportar">0</span>
+      </div>
+    </div>
+  </div>
+ 
+</main>
+ 
+<!-- MODAL EDITAR -->
+<div class="modal-overlay oculto" id="modal-editar">
+  <div class="modal-caja">
+    <div class="modal-header">
+      <h3>✏️ Editar Novedad</h3>
+      <button class="modal-cerrar" onclick="cerrarModal()">✕</button>
+    </div>
+    <div id="alerta-modal" class="oculto"></div>
+    <div class="form-grid">
+      <div class="form-grupo">
+        <label>Fecha inicio</label>
+        <input type="date" id="m-fecha">
+      </div>
+      <div class="form-grupo">
+        <label>Aeropuerto</label>
+        <select id="m-aerop">
+          <option>SACO</option><option>SASA</option><option>SASJ</option>
+          <option>SANT</option><option>SANE</option><option>SANR</option>
+          <option>SANC</option><option>SANL</option><option>SAOC</option><option>SAOS</option>
+        </select>
+      </div>
+      <div class="form-grupo">
+        <label>Área</label>
+        <select id="m-area">
+          <option>ANS</option><option>CNSE</option><option>SOC</option>
+          <option>RRHH</option><option>ADM FIN</option><option>INSTRUCCION</option>
+          <option>INFRA</option><option>MANTENIMIENTO</option>
+        </select>
+      </div>
+      <div class="form-grupo">
+        <label>Dependencia</label>
+        <select id="m-dependencia">
+          <option value=""></option>
+          <option>ACC</option><option>TWR</option><option>AISCOM</option>
+          <option>COMS</option><option>ARO AIS</option>
+        </select>
+      </div>
+      <div class="form-grupo ancho-completo">
+        <label>Sistema / Servicio</label>
+        <input type="text" id="m-sistema">
+      </div>
+      <div class="form-grupo">
+        <label>Estado</label>
+        <select id="m-estado">
+          <option>Abierta</option><option>En Curso</option><option>Solucionado</option><option>Finalizada</option>
+        </select>
+      </div>
+      <div class="form-grupo">
+        <label>Criticidad</label>
+        <select id="m-criticidad">
+          <option>Alta</option><option>Media</option><option>Baja</option>
+        </select>
+      </div>
+      <div class="form-grupo ancho-completo">
+        <label>Impacto Operativo</label>
+        <select id="m-impacto">
+          <option>Afecta ATS</option>
+          <option>Afectacion Parcial</option>
+          <option>NO Afecta ATS</option>
+        </select>
+      </div>
+      <div class="form-grupo ancho-completo">
+        <label>Motivo</label>
+        <input type="text" id="m-motivo">
+      </div>
+      <div class="form-grupo ancho-completo">
+        <label>Observaciones</label>
+        <textarea id="m-obs"></textarea>
+      </div>
+      <div class="form-grupo">
+        <label>NOTAM</label>
+        <input type="text" id="m-notam">
+      </div>
+      <div class="form-grupo">
+        <label>Evidencia</label>
+        <input type="text" id="m-evidencia">
+      </div>
+      <div class="form-grupo ancho-completo">
+        <label>Plan de Acción</label>
+        <textarea id="m-plan"></textarea>
+      </div>
+    </div>
+    <div class="form-acciones">
+      <button class="btn btn-secundario" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-peligro btn-eliminar-modal" onclick="eliminarNovedadModal()">🗑 Eliminar</button>
+      <button class="btn btn-primario" onclick="guardarEdicion()">✔ Guardar cambios</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- MODAL VER DETALLE -->
+<div class="modal-overlay oculto" id="modal-detalle">
+  <div class="modal-caja">
+    <div class="modal-header">
+      <h3>📄 Detalle de Novedad</h3>
+      <button class="modal-cerrar" onclick="cerrarDetalle()">✕</button>
+    </div>
+    <div class="form-grid" id="detalle-contenido"></div>
+    <div class="form-acciones">
+      <button class="btn btn-secundario" onclick="cerrarDetalle()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
