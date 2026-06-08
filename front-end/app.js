@@ -1,5 +1,5 @@
 // ⚙️ Cambiá esta URL por la dirección donde esté corriendo el backend
-const API = 'http://localhost:3000';
+const API = 'https://novedades-operativas.onrender.com';
  
 let novedades = [];
 let filtradasCache = [];
